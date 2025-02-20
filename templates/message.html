@@ -18,10 +18,10 @@
         .chat-container {
             width: 400px;
             max-width: 100%;
-            background: white;
+            background: rgba(6, 155, 150, 0.518);
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(229, 3, 3, 0.692);
             display: flex;
             flex-direction: column;
         }
@@ -31,7 +31,7 @@
             border: 1px solid #ddd;
             padding: 10px;
             border-radius: 5px;
-            background: #fafafa;
+            background: #7cdb07da;
         }
         .message {
             padding: 8px 12px;
@@ -84,8 +84,8 @@
 </div>
 
 <script>
-    const username = "{{ user if user else 'guest' }}";  // Usa 'guest' se user è indefinito
-    const recipient = "{{ recipient }}"; // ID del destinatario
+    const username = "{{ user if user else 'guest' }}";  
+    const recipient = "{{ recipient }}"; 
     const ws = new WebSocket(`ws://${window.location.host}/ws/${username}`);
 
     ws.onopen = function () {
