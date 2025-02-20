@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .chat-container {
+            width: 400px;
+            max-width: 100%;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-box {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        .message {
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 10px;
+            max-width: 75%;
+        }
+        .my-message {
+            background: #007bff;
+            color: white;
+            align-self: flex-end;
+        }
+        .other-message {
+            background: #e0e0e0;
+            color: black;
+            align-self: flex-start;
+        }
+        .input-box {
+            display: flex;
+            margin-top: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            border: none;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-left: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-box" id="chatBox"></div>
+    <div class="input-box">
+        <input type="text" id="messageInput" placeholder="Scrivi un messaggio...">
+        <button onclick="sendMessage()">Invia</button>
+    </div>
+</div>
+
+<script>
+    const username = "{{ user if user else 'guest' }}";  // Usa 'guest' se user è indefinito
+    const recipient = "{{ recipient }}"; // ID del destinatario
+    const ws = new WebSocket(`ws://${window.location.host}/ws/${username}`);
+
+    ws.onopen = function () {
+        console.log("WebSocket connesso");
+    };
+
+    ws.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        console.log("Messaggio ricevuto:", data);
+        addMessage(data.sender, data.message, data.sender === username);
+    };
+
+    ws.onclose = function () {
+        console.log("WebSocket disconnesso");
+    };
+
+    function sendMessage() {
+        const input = document.getElementById("messageInput");
+        const message = input.value.trim();
+        if (message) {
+            const data = {
+                sender: username,
+                receiver: recipient,
+                message: message
+            };
+            ws.send(JSON.stringify(data));
+            addMessage(username, message, true);
+            input.value = "";
+        }
+    }
+
+    function addMessage(sender, message, isMine) {
+        const chatBox = document.getElementById("chatBox");
+        const msgDiv = document.createElement("div");
+        msgDiv.textContent = message;
+        msgDiv.classList.add("message", isMine ? "my-message" : "other-message");
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight; // Scorrere in basso
+    }
+</script>
+
+</body>
+</html>
