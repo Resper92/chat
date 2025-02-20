@@ -87,21 +87,17 @@
     const username = "{{ user if user else 'guest' }}";  
     const recipient = "{{ recipient }}"; 
     const ws = new WebSocket(`ws://${window.location.host}/ws/${username}`);
-
     ws.onopen = function () {
         console.log("WebSocket connesso");
     };
-
     ws.onmessage = function (event) {
         const data = JSON.parse(event.data);
         console.log("Messaggio ricevuto:", data);
         addMessage(data.sender, data.message, data.sender === username);
     };
-
     ws.onclose = function () {
         console.log("WebSocket disconnesso");
     };
-
     function sendMessage() {
         const input = document.getElementById("messageInput");
         const message = input.value.trim();
