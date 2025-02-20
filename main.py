@@ -120,35 +120,29 @@ class ConnectionManager:
         self.active_connections = {} 
 
     async def connect(self, websocket: WebSocket, username: str):
-        print(f"[DEBUG] Connetto {username}")
         await websocket.accept()
         if username not in self.active_connections:
             self.active_connections[username] = []
         self.active_connections[username].append(websocket)
-        print(f"[DEBUG] Connessioni attive: {self.active_connections}")
 
     def disconnect(self, username: str, websocket: WebSocket):
-        print(f"[DEBUG] Disconnetto {username}")
+
         if username in self.active_connections:
             self.active_connections[username].remove(websocket)
             if not self.active_connections[username]:
                 del self.active_connections[username]
-        print(f"[DEBUG] Connessioni attive dopo disconnessione: {self.active_connections}")
 
     async def send_personal_message(self, message: dict, username: str):
-        print(f"[DEBUG] Invio messaggio a {username}: {message}")
         if username in self.active_connections:
             disconnected_sockets = []
             for ws in self.active_connections[username]:
                 try:
                     await ws.send_json(message)
                 except Exception as e:
-                    print(f"[DEBUG] Errore durante l'invio a {username}: {e}")
                     disconnected_sockets.append(ws)
             for ws in disconnected_sockets:
                 self.disconnect(username, ws)
-        else:
-            print(f"[DEBUG] Nessuna connessione attiva per {username}")
+
 
 manager = ConnectionManager()
 
@@ -159,7 +153,6 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
     try:
         while True:
             data = await websocket.receive_json()
-            print(f"[DEBUG] Dati ricevuti da {username}: {data}")
             sender = data["sender"]
             receiver = data["receiver"]
             message_text = data["message"]
@@ -173,17 +166,12 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
             result = await message_collection.insert_one(message)
             if result.inserted_id:
                 message["_id"] = result.inserted_id
-
-            print(f"[DEBUG] Messaggio salvato: {message}")
             safe_message = message.copy()
             if "_id" in safe_message:
                 safe_message["_id"] = str(safe_message["_id"])
-
-
             await manager.send_personal_message(safe_message, receiver)
             await manager.send_personal_message(safe_message, sender)
     except WebSocketDisconnect:
-        print(f"[DEBUG] WebSocket disconnesso per: {username}")
         manager.disconnect(username, websocket)
 
 def start():
