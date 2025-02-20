@@ -117,21 +117,17 @@ async def get_or_create_chat(
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections = {} 
-
+        self.active_connections = {}
     async def connect(self, websocket: WebSocket, username: str):
         await websocket.accept()
         if username not in self.active_connections:
             self.active_connections[username] = []
         self.active_connections[username].append(websocket)
-
     def disconnect(self, username: str, websocket: WebSocket):
-
-        if username in self.active_connections:
+         if username in self.active_connections:
             self.active_connections[username].remove(websocket)
             if not self.active_connections[username]:
                 del self.active_connections[username]
-
     async def send_personal_message(self, message: dict, username: str):
         if username in self.active_connections:
             disconnected_sockets = []
@@ -148,7 +144,6 @@ manager = ConnectionManager()
 
 @app.websocket("/ws/{username}")
 async def websocket_endpoint(websocket: WebSocket, username: str):
-    print(f"[DEBUG] WebSocket aperto per: {username}")
     await manager.connect(websocket, username)
     try:
         while True:
